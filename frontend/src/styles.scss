@@ -1,0 +1,56 @@
+﻿:root {
+  --bg: #f6f7f9; --card: #fff; --text: #1d2433; --muted: #667085; --line: #e4e7ec;
+  --brand: #4f46e5; --brand-ink: #fff; --danger: #d92d20; --ok: #12b76a; --warn: #f79009;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0f1420; --card: #171d2c; --text: #e7eaf2; --muted: #98a2b3; --line: #2a3347; --brand: #818cf8; --brand-ink: #0f1420; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+h1 { font-size: 1.5rem; margin: 0 0 1rem; } h3 { margin: .25rem 0; font-size: 1rem; }
+a { color: var(--brand); text-decoration: none; } a:hover { text-decoration: underline; }
+code { background: var(--line); padding: 0 .3rem; border-radius: 4px; }
+
+.nav { display: flex; align-items: center; gap: 1.5rem; padding: .75rem 1.5rem; background: var(--card); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.nav .brand { font-weight: 700; font-size: 1.1rem; color: var(--text); }
+.nav nav { display: flex; gap: 1rem; flex: 1; } .nav nav a.active { font-weight: 600; text-decoration: underline; }
+.nav .user { font-size: .85rem; color: var(--muted); display: flex; gap: .5rem; align-items: center; }
+.pill { background: var(--brand); color: var(--brand-ink); border-radius: 999px; padding: 0 .45rem; font-size: .75rem; }
+.container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+.card.narrow, .narrow { max-width: 420px; margin-inline: auto; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+.product { display: flex; flex-direction: column; gap: .4rem; margin: 0; } .product p { flex: 1; font-size: .85rem; margin: 0; }
+.chip { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.row { display: flex; align-items: center; gap: .75rem; } .between { justify-content: space-between; }
+.center { text-align: center; margin: 1rem 0; } .muted { color: var(--muted); } .low { color: var(--warn); font-weight: 600; }
+.hint { font-size: .8rem; color: var(--muted); } .plain { list-style: none; padding: 0; margin: .5rem 0; }
+.toolbar { display: flex; gap: .75rem; margin-bottom: 1rem; } .toolbar input { flex: 1; }
+.inline { display: inline-flex; gap: .4rem; align-items: center; flex-direction: row; }
+
+label { display: flex; flex-direction: column; gap: .25rem; margin-bottom: .75rem; font-size: .85rem; color: var(--muted); }
+input, select { font: inherit; padding: .5rem .65rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); }
+input:focus-visible, select:focus-visible, .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+input.num { width: 90px; } .qty { display: inline-block; min-width: 2rem; text-align: center; }
+.field-error { color: var(--danger); font-size: .8rem; margin: -.4rem 0 .6rem; }
+
+.btn { font: inherit; padding: .5rem .9rem; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+.btn:hover:not(:disabled) { border-color: var(--brand); } .btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.btn.danger { color: var(--danger); } .btn.sm { padding: .2rem .55rem; font-size: .85rem; }
+.actions { display: flex; gap: .5rem; }
+
+.table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
+.table th, .table td { padding: .6rem .8rem; text-align: left; border-bottom: 1px solid var(--line); } .table th { font-size: .8rem; color: var(--muted); }
+
+.badge { padding: .15rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+.badge-pending { background: #fef0c7; color: #93370d; } .badge-paid { background: #d1fadf; color: #05603a; }
+.badge-shipped { background: #d1e9ff; color: #175cd3; } .badge-delivered { background: #e0eaff; color: #3538cd; }
+.badge-cancelled { background: #fee4e2; color: #b42318; }
+
+.toasts { position: fixed; right: 1rem; bottom: 1rem; display: flex; flex-direction: column; gap: .5rem; z-index: 10; }
+.toast { padding: .7rem 1rem; border-radius: 10px; color: #fff; background: #344054; box-shadow: 0 6px 20px rgb(0 0 0 / .2); cursor: pointer; max-width: 360px; }
+.toast-success { background: var(--ok); } .toast-error { background: var(--danger); }
+@media (max-width: 640px) { .nav { gap: .75rem; } .table { font-size: .85rem; } }

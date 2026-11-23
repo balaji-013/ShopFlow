@@ -1,0 +1,40 @@
+# One command: docker compose up --build   ->  http://localhost:8080   (demo users are on the login page)
+# Topology:  browser -> nginx(web) -> api -> sql.   Only `web` is published; the database is NOT reachable from the host network.
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:-Dev_Passw0rd_ChangeMe}      # real secrets come from the environment / a secret store, never git
+    volumes: [ "sqldata:/var/opt/mssql" ]                             # data survives container restarts
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      retries: 12
+
+  api:
+    build: ./backend
+    depends_on:
+      sql: { condition: service_healthy }                             # wait until SQL actually accepts connections
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "Server=sql;Database=ShopFlow;User Id=sa;Password=${SA_PASSWORD:-Dev_Passw0rd_ChangeMe};TrustServerCertificate=True"
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-compose-demo-signing-key-change-me-0123456789}
+      Webhooks__Secret: ${WEBHOOK_SECRET:-compose-demo-webhook-secret}
+      Database__MigrateOnStartup: "true"      # demo convenience. In production run migrations as a separate pipeline step.
+      Database__Seed: "true"
+      Security__RequireHttps: "false"         # demo only: TLS terminates at the real load balancer / ingress in production
+      ForwardedHeaders__TrustAll: "true"      # safe ONLY because the api is not published to the host; behind nginx only
+      Dev__SimulatorEnabled: "true"           # enables the fake "payment provider" button
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && printf 'GET /health/live HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q 200 <&3"]
+      interval: 10s
+      retries: 10
+
+  web:
+    build: ./frontend
+    depends_on: [ api ]
+    ports: [ "8080:80" ]
+
+volumes:
+  sqldata:

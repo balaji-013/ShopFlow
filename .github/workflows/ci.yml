@@ -1,0 +1,43 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      sql:                                    # REAL SQL Server for the integration tests (no mocks, no SQLite)
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env: { ACCEPT_EULA: "Y", MSSQL_SA_PASSWORD: "Ci_Passw0rd_123" }
+        ports: ["1433:1433"]
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P Ci_Passw0rd_123 -Q 'SELECT 1'"
+          --health-interval 10s --health-retries 12
+    env:
+      TEST_SQL_SERVER: "Server=localhost,1433;User Id=sa;Password=Ci_Passw0rd_123;TrustServerCertificate=True"
+    defaults: { run: { working-directory: backend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { global-json-file: backend/global.json }
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release          # warnings are errors (Directory.Build.props)
+      - run: dotnet test --no-build -c Release --logger "trx" --collect:"XPlat Code Coverage"
+      - name: Vulnerable NuGet packages
+        run: dotnet list package --vulnerable --include-transitive
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci
+      - run: npx ng test --watch=false
+      - run: npx ng build --configuration production
+      - run: npm audit --omit=dev --audit-level=high
+
+  # Deploy job (sketch): build+push images tagged with the commit SHA, run EF migrations as a one-off job, then roll out
+  # (blue/green or rolling) with the readiness probe /health/ready gating traffic. Roll back = redeploy the previous SHA.
